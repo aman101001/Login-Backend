@@ -2,8 +2,9 @@ const express=require('express')
 const app=express();
 const bodyParser=require('body-parser')
 const cors = require('cors');
-const mongoose=require('mongoose')
-const jwt =require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+// const mongoose=require('mongoose')
+// const jwt =require('jsonwebtoken');
 
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json())

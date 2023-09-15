@@ -17,6 +17,8 @@ const login=require('./login.controller')
         
 //     }
 // }
-route.post('/login',login.loginUser)
+route.post('/login',login.loginUser);
+route.post('/addUser',login.addUser);
+route.post('/authenticate',login.authenticateConfigUser)
 
 module.exports=route
