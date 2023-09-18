@@ -9,4 +9,4 @@ var schema=new mongoose.Schema({
     }
 })
 
-module.exports=new mongoose.model('tests',schema)
+module.exports=new mongoose.model('users',schema)

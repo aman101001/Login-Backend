@@ -1,13 +1,10 @@
-const Login = require('./login.model')
-const mongoose = require('mongoose')
-const jwt = require('jsonwebtoken')
+const Login = require('./login.model');
+const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const secretkey = "secretkey";
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-const DB_USER_TEST = 'admin';
-const PASSWORD_TEST = encodeURIComponent('stageR0b0#');
-// mongodb://${DB_USER_TEST}:${PASSWORD_TEST}@testing.99games.mobi:19500/nngames?authSource=admin
 
 exports.loginUser = ((req, res) => {
     let body = {
@@ -27,7 +24,6 @@ exports.loginUser = ((req, res) => {
         ad.authenticate(username, password, function (err, auth) {
             if (err) {
                 res.status(401).json({
-                    // status: 404,
                     'msg': 'Wrong Credential!!',
                     'data': false
                 })
@@ -117,7 +113,6 @@ exports.addUser = ((req, res) => {
         } catch (err) {
             console.log(err)
         }
-
         bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
             if (err) {
                 console.error('Error hashing password:', err);

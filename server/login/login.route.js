@@ -1,6 +1,6 @@
 const express=require('express');
-const route=express.Router()
-const login=require('./login.controller')
+const route=express.Router();
+const login=require('./login.controller');
 // const verify =require ('../auth.controller');
 
 // function verifyToken(req,res,next){
