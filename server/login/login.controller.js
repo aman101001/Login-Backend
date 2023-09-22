@@ -124,14 +124,42 @@ exports.addUser = ((req, res) => {
             })
             data.save()
                 .then((doc) => {
-                    res.status(200).json(doc)
+                    res.status(200).json();
                 })
                 .catch((err) => {
                     res.status(404).json({
-                        msg: 'Unable to add user details'
+                        mssg: 'Unable to add user details'
                     })
                 })
         });
+    }
+})
+
+exports.removeUser = ((req,res) => {
+    let DB_URL = req.body.DB_URL;
+    console.log(DB_URL)
+    if (DB_URL) {
+        try {
+            const con = mongoose.connect(DB_URL,
+                {
+                    useNewUrlParser: true, useUnifiedTopology: true,
+                })
+            console.log('Connection successful to provided URL')
+        } catch (err) {
+            console.log(err)
+        }
+        Login.findOneAndDelete({ email: req.body.email}).then(user => {
+            if(user){
+                res.status(200).json({
+                    'mssg':'User deleted successfully'
+                })
+            } else {
+                res.status(401).json({
+                    'mssg': 'User not found!'
+                });
+            }
+        })
+
     }
 })
 
