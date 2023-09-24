@@ -1,6 +1,7 @@
 const Login = require('./login.model');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 const secretkey = "secretkey";
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
@@ -24,7 +25,7 @@ exports.loginUser = ((req, res) => {
         ad.authenticate(username, password, function (err, auth) {
             if (err) {
                 res.status(401).json({
-                    'msg': 'Wrong Credential!!',
+                    'mssg': 'Invalid Credentials!!',
                     'data': false
                 })
             }
@@ -78,13 +79,13 @@ exports.loginUser = ((req, res) => {
                         } else {
                         // Deny access to the user
                           res.status(401).json({
-                            'msg': 'Incorrect Password'
+                            'mssg': 'Incorrect Password!'
                         });
                         }
                       });
                 } else {
                     res.status(401).json({
-                        'msg': 'Invalid credentials'
+                        'mssg': 'Invalid credentials!'
                     });
                 }
             })
@@ -137,7 +138,6 @@ exports.addUser = ((req, res) => {
 
 exports.removeUser = ((req,res) => {
     let DB_URL = req.body.DB_URL;
-    console.log(DB_URL)
     if (DB_URL) {
         try {
             const con = mongoose.connect(DB_URL,
@@ -163,3 +163,49 @@ exports.removeUser = ((req,res) => {
     }
 })
 
+exports.resetPwd = ((req,res) => {
+    let DB_URL=req.body.DB_URL;
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'haa39610@gmail.com',
+          pass: 'amanha110'
+        }
+      });
+      const mailOptions = {
+        from: 'haa39610@gmail.com',
+        to: 'aman163690@gmail.com',
+        subject: 'Hello from Nodemailer',
+        text: 'This is a test email sent from Nodemailer.',
+      };
+    if (DB_URL) {
+        try {
+            const con = mongoose.connect(DB_URL,
+                {
+                    useNewUrlParser: true, useUnifiedTopology: true,
+                })
+            console.log('Connection successful to provided URL')
+        } catch (err) {
+            console.log(err)
+        }
+        Login.findOne({ email: req.body.email}).then(user => {
+            if(user){
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                      console.error('Error sending email:', error);
+                    } else {
+                      console.log('Email sent:', info.response);
+                    }
+                  });
+                res.status(200).json({
+                    'mssg':'User is present'
+                })
+            } else {
+                res.status(401).json({
+                    'mssg': 'User not found!'
+                });
+            }
+        })
+
+    }
+})
