@@ -6,6 +6,12 @@ var schema=new mongoose.Schema({
     },
     password:{
         type:String,
+    },
+    resetCode:{
+        type:String,
+    },
+    resetCodeExpiration:{
+        type:Date
     }
 })
 

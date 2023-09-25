@@ -163,21 +163,20 @@ exports.removeUser = ((req,res) => {
     }
 })
 
-exports.resetPwd = ((req,res) => {
+exports.generateCode =((req,res) => {
+    var resetCode;
     let DB_URL=req.body.DB_URL;
     var transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
         auth: {
-          user: 'haa39610@gmail.com',
-          pass: 'amanha110'
+            user: 'haa39610@gmail.com',
+            pass: 'surw aiev xupg hgex'
         }
       });
-      const mailOptions = {
-        from: 'haa39610@gmail.com',
-        to: 'aman163690@gmail.com',
-        subject: 'Hello from Nodemailer',
-        text: 'This is a test email sent from Nodemailer.',
-      };
+   
+    
     if (DB_URL) {
         try {
             const con = mongoose.connect(DB_URL,
@@ -188,17 +187,29 @@ exports.resetPwd = ((req,res) => {
         } catch (err) {
             console.log(err)
         }
-        Login.findOne({ email: req.body.email}).then(user => {
+        Login.findOne({ email: req.body.email}).then(async user => {
             if(user){
-                transporter.sendMail(mailOptions, (error, info) => {
-                    if (error) {
-                      console.error('Error sending email:', error);
-                    } else {
-                      console.log('Email sent:', info.response);
-                    }
-                  });
+                 resetCode = generateRandom4DigitNumber();
+                 user.resetCode=resetCode;
+                 user.resetCodeExpiration = Date.now() + 3600000;
+                //  3600000
+                 await user.save();
+                 const mailOptions = {
+                    from: 'haa39610@gmail.com',
+                    to: 'aman163690@gmail.com',
+                    subject: 'Password Reset Verification Code',
+                    text: `Your code for reset password is ${resetCode}`,
+                  };
+                // transporter.sendMail(mailOptions, (error, info) => {
+                //     if (error) {
+                //       console.error('Error sending password reset email:', error);
+                //       return;
+                //     } else {
+                //       console.log('Password reset email sent:');
+                //     }
+                //   });
                 res.status(200).json({
-                    'mssg':'User is present'
+                    // 'mssg':'User is present'
                 })
             } else {
                 res.status(401).json({
@@ -209,3 +220,72 @@ exports.resetPwd = ((req,res) => {
 
     }
 })
+
+exports.verifyCode =((req,res) => {
+    let DB_URL=req.body.DB_URL;
+    let code=req.body.code;
+    if (DB_URL) {
+        try {
+            const con = mongoose.connect(DB_URL,
+                {
+                    useNewUrlParser: true, useUnifiedTopology: true,
+                })
+            console.log('Connection successful to provided URL')
+        } catch (err) {
+            console.log(err)
+        }
+    }
+    Login.findOne({ email: req.body.email,resetCodeExpiration:{$gt: Date.now()}}).then((user)=>{
+        if(!user){
+            return res.status(400).json({ 'mssg': 'Verification code has expired!' });
+        }
+        if(code == user['_doc']['resetCode']){
+            res.status(200).json({
+                mssg:'Verification successfull'
+            })
+        } else {
+            res.status(401).json({
+                'mssg': 'Invalid code!'
+            });
+        }
+    })
+})
+
+exports.resetPwd = ((req,res) => {
+    let DB_URL=req.body.DB_URL;
+    if (DB_URL) {
+        try {
+            const con = mongoose.connect(DB_URL,
+                {
+                    useNewUrlParser: true, useUnifiedTopology: true,
+                })
+            console.log('Connection successful to provided URL')
+        } catch (err) {
+            console.log(err)
+        }
+    }
+    bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
+        if (err) {
+            console.error('Error hashing password:', err);
+            return;
+        }
+        Login.updateOne({ email: req.body.email },{$set: {password: hash}}).then(()=>{
+            res.status(200).json({
+                msg:'Password updated successfully!'
+            });
+        })
+            .catch((err) => {
+                res.status(404).json({
+                    mssg: 'Unable to add user details'
+                })
+            })
+    });
+    
+})
+
+
+function generateRandom4DigitNumber() {
+    const min = 1000;
+    const max = 9999;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }

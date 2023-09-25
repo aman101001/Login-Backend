@@ -21,5 +21,7 @@ route.post('/login',login.loginUser);
 route.post('/addUser',login.addUser);
 route.post('/authenticate',login.authenticateConfigUser)
 route.post('/removeUser',login.removeUser);
+route.post('/generateCode',login.generateCode);
+route.post('/verifyCode',login.verifyCode);
 route.post('/resetPwd',login.resetPwd);
 module.exports=route
