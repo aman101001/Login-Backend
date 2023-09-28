@@ -55,51 +55,51 @@ exports.loginUser = ((req, res) => {
         } catch (err) {
             console.log(err)
         }
-            Login.findOne({ email: req.body.email}).then(user => {
-                if (user) {
-                    //if present, compare the password with the stored(hashed) password
-                    bcrypt.compare(req.body.password, user.password, (err, result) => {
-                        if (err) {
-                          console.error('Error comparing passwords:', err);
-                          return;
-                        }
-                        if (result) {
-                          //If user credentials are successfully validated, generate jwt token
-                          let token = jwt.sign({
+        Login.findOne({ email: req.body.email }).then(user => {
+            if (user) {
+                //if present, compare the password with the stored(hashed) password
+                bcrypt.compare(req.body.password, user.password, (err, result) => {
+                    if (err) {
+                        console.error('Error comparing passwords:', err);
+                        return;
+                    }
+                    if (result) {
+                        //If user credentials are successfully validated, generate jwt token
+                        let token = jwt.sign({
                             user
                         }, secretkey, {
                             expiresIn: 60 * 60 * 24
                         });
-                            // Allow access to the user
+                        // Allow access to the user
                         res.status(200).json({
                             'token': token,
                             'email': user['_doc']['email']
                         });
-                      
-                        } else {
+
+                    } else {
                         // Deny access to the user
-                          res.status(401).json({
+                        res.status(401).json({
                             'mssg': 'Incorrect Password!'
                         });
-                        }
-                      });
-                } else {
-                    res.status(401).json({
-                        'mssg': 'Invalid credentials!'
-                    });
-                }
-            })
+                    }
+                });
+            } else {
+                res.status(401).json({
+                    'mssg': 'Invalid credentials!'
+                });
+            }
+        })
     }
 })
 
-exports.authenticateConfigUser = (req, res, next) => {
-    let token = jwt.sign({}, secretkey, {
-        expiresIn: 60 * 60 * 24
-    });
-    res.status(200).json({
-        'token': token
-    });
-};
+// exports.authenticateConfigUser = (req, res, next) => {
+//     let token = jwt.sign({}, secretkey, {
+//         expiresIn: 60 * 60 * 24
+//     });
+//     res.status(200).json({
+//         'token': token
+//     });
+// };
 
 
 exports.addUser = ((req, res) => {
@@ -114,29 +114,38 @@ exports.addUser = ((req, res) => {
         } catch (err) {
             console.log(err)
         }
-        bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
-            if (err) {
-                console.error('Error hashing password:', err);
-                return;
+
+        Login.findOne({ email: req.body.email }).then(user=>{
+            if(user){
+                return res.status(409).json({
+                    mssg:'User already present!'
+                })
             }
-            var data = new Login({
-                email: req.body.email,
-                password: hash
-            })
-            data.save()
-                .then((doc) => {
-                    res.status(200).json();
+            bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
+                if (err) {
+                    console.error('Error hashing password:', err);
+                    return;
+                }
+                var data = new Login({
+                    email: req.body.email,
+                    password: hash
                 })
-                .catch((err) => {
-                    res.status(404).json({
-                        mssg: 'Unable to add user details'
+                data.save()
+                    .then((doc) => {
+                        res.status(200).json();
                     })
-                })
-        });
+                    .catch((err) => {
+                        res.status(404).json({
+                            mssg: 'Unable to add user details'
+                        })
+                    })
+            });
+        })
+      
     }
 })
 
-exports.removeUser = ((req,res) => {
+exports.removeUser = ((req, res) => {
     let DB_URL = req.body.DB_URL;
     if (DB_URL) {
         try {
@@ -148,11 +157,12 @@ exports.removeUser = ((req,res) => {
         } catch (err) {
             console.log(err)
         }
-        Login.findOneAndDelete({ email: req.body.email}).then(user => {
-            if(user){
+        Login.findOneAndDelete({ email: req.body.email }).then(user => {
+            if (user) {
                 res.status(200).json({
-                    'mssg':'User deleted successfully'
+                    'mssg': 'User deleted successfully'
                 })
+
             } else {
                 res.status(401).json({
                     'mssg': 'User not found!'
@@ -163,20 +173,32 @@ exports.removeUser = ((req,res) => {
     }
 })
 
-exports.generateCode =((req,res) => {
-    var resetCode;
-    let DB_URL=req.body.DB_URL;
-    var transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
+exports.generateCode = ((req, res) => {
+    let resetCode;
+    let DB_URL = req.body.DB_URL;
+    // let transporter = nodemailer.createTransport({
+    //     service: 'gmail',
+    //     auth: {
+    //       type: 'OAuth2',
+    //       user: 'aman.ha@99games.in',
+    //       pass: 'aman@99games',
+    //       clientId: '840220904586-4f8gj92fjrcs0fe5o5900uvtfs93ndcl.apps.googleusercontent.com',
+    //       clientSecret: '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',
+    //       refreshToken: '1//04zL_vhAbb-HWCgYIARAAGAQSNwF-L9Irx1MMjkXbh7eHns0E3nIv4Bt8KZbRxQ3Vfi0SOMQOSLnS-uBc9C-k4vSUplqrqsjgDiQ'
+    //     }
+    //   });
+
+    let mailConfig = {
+        host: "mail3.99games.in",
+        port: 587,
+        secure: false,
         auth: {
-            user: 'haa39610@gmail.com',
-            pass: 'surw aiev xupg hgex'
+            user: 'donotreply',
+            pass: 'Replay#67',
         }
-      });
-   
-    
+    };
+    let transporter = nodemailer.createTransport(mailConfig);
+
     if (DB_URL) {
         try {
             const con = mongoose.connect(DB_URL,
@@ -187,19 +209,19 @@ exports.generateCode =((req,res) => {
         } catch (err) {
             console.log(err)
         }
-        Login.findOne({ email: req.body.email}).then(async user => {
-            if(user){
-                 resetCode = generateRandom4DigitNumber();
-                 user.resetCode=resetCode;
-                 user.resetCodeExpiration = Date.now() + 3600000;
-                //  3600000
-                 await user.save();
-                 const mailOptions = {
-                    from: 'haa39610@gmail.com',
-                    to: 'aman163690@gmail.com',
+        Login.findOne({ email: req.body.email }).then(user => {
+            if (user) {
+                resetCode = generateRandom4DigitNumber();
+                user.resetCode = resetCode;
+                user.resetCodeExpiration = Date.now() + 3600000;
+                user.save();
+                const mailOptions = {
+                    from: 'donotreply@99games.in',
+                    to: 'aman.ha@99games.in',
                     subject: 'Password Reset Verification Code',
                     text: `Your code for reset password is ${resetCode}`,
-                  };
+                };
+
                 // transporter.sendMail(mailOptions, (error, info) => {
                 //     if (error) {
                 //       console.error('Error sending password reset email:', error);
@@ -208,22 +230,23 @@ exports.generateCode =((req,res) => {
                 //       console.log('Password reset email sent:');
                 //     }
                 //   });
-                res.status(200).json({
-                    // 'mssg':'User is present'
-                })
+
+                res.status(200).json({});
+
             } else {
                 res.status(401).json({
                     'mssg': 'User not found!'
                 });
+
             }
         })
 
     }
 })
 
-exports.verifyCode =((req,res) => {
-    let DB_URL=req.body.DB_URL;
-    let code=req.body.code;
+exports.verifyCode = ((req, res) => {
+    let DB_URL = req.body.DB_URL;
+    let code = req.body.code;
     if (DB_URL) {
         try {
             const con = mongoose.connect(DB_URL,
@@ -235,14 +258,15 @@ exports.verifyCode =((req,res) => {
             console.log(err)
         }
     }
-    Login.findOne({ email: req.body.email,resetCodeExpiration:{$gt: Date.now()}}).then((user)=>{
-        if(!user){
+    Login.findOne({ email: req.body.email, resetCodeExpiration: { $gt: Date.now() } }).then((user) => {
+        if (!user) {
             return res.status(400).json({ 'mssg': 'Verification code has expired!' });
         }
-        if(code == user['_doc']['resetCode']){
+        if (code == user['_doc']['resetCode']) {
             res.status(200).json({
-                mssg:'Verification successfull'
+                mssg: 'Verification successfull'
             })
+
         } else {
             res.status(401).json({
                 'mssg': 'Invalid code!'
@@ -251,8 +275,8 @@ exports.verifyCode =((req,res) => {
     })
 })
 
-exports.resetPwd = ((req,res) => {
-    let DB_URL=req.body.DB_URL;
+exports.resetPwd = ((req, res) => {
+    let DB_URL = req.body.DB_URL;
     if (DB_URL) {
         try {
             const con = mongoose.connect(DB_URL,
@@ -269,18 +293,19 @@ exports.resetPwd = ((req,res) => {
             console.error('Error hashing password:', err);
             return;
         }
-        Login.updateOne({ email: req.body.email },{$set: {password: hash}}).then(()=>{
+        Login.updateOne({ email: req.body.email }, { $set: { password: hash, resetCode: null, resetCodeExpiration: null } }).then(() => {
             res.status(200).json({
-                msg:'Password updated successfully!'
+                msg: 'Password updated successfully!'
             });
+
         })
             .catch((err) => {
                 res.status(404).json({
-                    mssg: 'Unable to add user details'
+                    mssg: 'Unable to update password!'
                 })
             })
     });
-    
+
 })
 
 
@@ -288,4 +313,4 @@ function generateRandom4DigitNumber() {
     const min = 1000;
     const max = 9999;
     return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
+}

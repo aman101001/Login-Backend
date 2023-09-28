@@ -2,32 +2,42 @@ const express=require('express')
 const app=express();
 const bodyParser=require('body-parser')
 const cors = require('cors');
-const bcrypt = require('bcrypt');
-// const mongoose=require('mongoose')
-// const jwt =require('jsonwebtoken');
+var fs = require('fs');
+var https = require('https');
 
+let SERVER = "LOCAL"
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json())
 
+
 app.use(cors());
 app.use(function (req, res, next) {
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'content-type');
     res.setHeader('Access-Control-Allow-Credentials', true);
     next();
 });
 
-// try{
-//     const con= mongoose.connect('mongodb://0.0.0.0:27017/student',
-//     {
-//         useNewUrlParser: true, useUnifiedTopology: true,
-//     })
-//     console.log('Connection successful')
-// }catch(err){
-//     console.log(err)
-// }
+if(SERVER === "TESTING"){
+    var options = {
+        key: fs.readFileSync('/etc/ssl/certs/nopass.key'),
+        cert: fs.readFileSync('/etc/ssl/certs/server.cer'),
+    };
+}
+
 
 app.use(require('./server/login/login.route.js'))
 
-app.listen(8080,()=>{
-    console.log('Server started')
-})
+if(SERVER === "TESTING"){
+    const PORT=8091;
+    var server = https.createServer(options, app).listen(PORT, function () {
+        console.log("Express server listening on port " + PORT );
+    });
+    
+}
+if(SERVER === "LOCAL"){
+    app.listen(8091,()=>{
+        console.log('Server started')
+    })
+}
