@@ -17,12 +17,12 @@ const login=require('./login.controller');
         
 //     }
 // }
-route.post('/loginbackend/login',login.loginUser);
-route.post('/loginbackend/addUser',login.addUser);
-route.post('/loginbackend/removeUser',login.removeUser);
-route.post('/loginbackend/generateCode',login.generateCode);
-route.post('/loginbackend/verifyCode',login.verifyCode);
-route.post('/loginbackend/resetPwd',login.resetPwd);
+route.post('',login.loginUser);
+route.post('/add-user',login.addUser);
+route.post('/remove-user',login.removeUser);
+route.post('/generate-code',login.generateCode);
+route.post('/verify-code',login.verifyCode);
+route.put('/reset-pwd',login.resetPwd);
 // route.post('/authenticate',login.authenticateConfigUser)
 
 module.exports=route

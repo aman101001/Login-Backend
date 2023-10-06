@@ -38,7 +38,6 @@ exports.loginUser = ((req, res) => {
                 });
                 res.status(200).json({
                     'token': token,
-                    'msg': 'Success',
                     'data': true,
                     'email': body.email + '@99games.in'
                 });
@@ -213,23 +212,23 @@ exports.generateCode = ((req, res) => {
             if (user) {
                 resetCode = generateRandom4DigitNumber();
                 user.resetCode = resetCode;
-                user.resetCodeExpiration = Date.now() + 3600000;
+                user.resetCodeExpiration = Date.now() + 300000;
                 user.save();
                 const mailOptions = {
                     from: 'donotreply@99games.in',
-                    to: 'aman.ha@99games.in',
+                    to: user.email,
                     subject: 'Password Reset Verification Code',
                     text: `Your code for reset password is ${resetCode}`,
                 };
 
-                // transporter.sendMail(mailOptions, (error, info) => {
-                //     if (error) {
-                //       console.error('Error sending password reset email:', error);
-                //       return;
-                //     } else {
-                //       console.log('Password reset email sent:');
-                //     }
-                //   });
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                      console.error('Error sending password reset email:', error);
+                      return;
+                    } else {
+                      console.log('Password reset email sent:');
+                    }
+                  });
 
                 res.status(200).json({});
 

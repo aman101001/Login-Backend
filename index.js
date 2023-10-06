@@ -5,10 +5,11 @@ const cors = require('cors');
 var fs = require('fs');
 var https = require('https');
 
-let SERVER = "LOCAL"
-app.use(bodyParser.urlencoded({extended:true}))
-app.use(bodyParser.json())
+let SERVER = "TESTING";
+app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.json());
 
+const loginRoute = require('./api/login/login.route');
 
 app.use(cors());
 app.use(function (req, res, next) {
@@ -27,7 +28,7 @@ if(SERVER === "TESTING"){
 }
 
 
-app.use(require('./server/login/login.route.js'))
+app.use('/loginbackend/login',loginRoute);
 
 if(SERVER === "TESTING"){
     const PORT=8091;
